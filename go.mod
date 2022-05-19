@@ -9,6 +9,7 @@ require (
 	github.com/go-chi/cors v1.2.1
 	github.com/rs/zerolog v1.26.1
 	github.com/swaggest/rest v0.2.28
+	github.com/swaggest/swgui v1.4.5
 	github.com/swaggest/usecase v1.1.2
 )
 

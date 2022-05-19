@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.co.za/PandaxZA/hayvn/consumer"
 	"github.co.za/PandaxZA/hayvn/logs"
+	"github.co.za/PandaxZA/hayvn/message"
+	"github.co.za/PandaxZA/hayvn/models"
 	"github.co.za/PandaxZA/hayvn/utils"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -18,6 +21,7 @@ import (
 	"github.com/swaggest/rest/request"
 	"github.com/swaggest/rest/response"
 	"github.com/swaggest/rest/response/gzip"
+	"github.com/swaggest/swgui/v3cdn"
 	"github.com/swaggest/usecase"
 	"github.com/swaggest/usecase/status"
 )
@@ -62,6 +66,26 @@ func main() {
 		cors.Handler(corsOptions),
 	)
 
+	//  In-memory storage
+	m := make(map[string][]models.AggregatedmessagesMessages)
+
+	//  Channels:
+	c := make(chan models.MessageBody)
+	p := make(chan models.AggregatedmessagesBody)
+	t := make(chan bool, 1)
+
+	// Services
+	consumer := consumer.NewBatcher(m, t, logger, config.RATE_LIMIT_SECONDS)
+
+	// Workers
+	go messageWorker(c, t, consumer, p)
+
+	// Routes:
+	r.Method(http.MethodGet, "/", nethttp.NewHandler(HealthCheck()))
+	r.Method(http.MethodGet, "/docs/openapi.json", apiSchema)
+	r.Mount("/docs", v3cdn.NewHandler(apiSchema.Reflector().Spec.Info.Title, "/docs/openapi.json", "/docs"))
+	r.Method(http.MethodPost, "/message", nethttp.NewHandler(message.Message(logger, c)))
+
 	// Start server.
 	logger.Printf("Server started on %s:%d/docs", config.HOST_NAME, config.HOST_PORT)
 	if err := http.ListenAndServe(fmt.Sprintf(":%d", config.HOST_PORT), r); err != nil {
@@ -87,4 +111,20 @@ func HealthCheck() usecase.IOInteractor {
 	u.SetTitle("Health Check")
 
 	return u
+}
+
+func messageWorker(c chan models.MessageBody, t chan bool, consumer *consumer.Batcher, publishChan chan models.AggregatedmessagesBody) {
+	for {
+		select {
+		case <-t:
+			fmt.Println("Data in timer")
+			message := consumer.FlushMessages()
+			publishChan <- message
+
+		case x := <-c:
+			fmt.Println("Data in messageWorker is: ", x)
+			consumer.StoreMessage(x)
+
+		}
+	}
 }
