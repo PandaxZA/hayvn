@@ -14,6 +14,7 @@ type Environment struct {
 	HOST_PORT          int    `env:"HOST_PORT,default=8081"`
 	ENVIRONMENT_NAME   string `env:"ENVIRONMENT_NAME,default=development"`
 	RESPONSE_URL       string `env:"RESPONSE_URL,default=http://localhost"`
+	RESPONSE_PORT      int    `env:"RESPONSE_PORT,default=8082"`
 	RATE_LIMIT_SECONDS int    `env:"RATE_LIMIT_SECONDS,default=10"`
 
 	IS_DEBUG bool `env:"IS_DEBUG,default=false"`

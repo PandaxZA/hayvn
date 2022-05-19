@@ -9,6 +9,7 @@ import (
 	"github.co.za/PandaxZA/hayvn/logs"
 	"github.co.za/PandaxZA/hayvn/message"
 	"github.co.za/PandaxZA/hayvn/models"
+	"github.co.za/PandaxZA/hayvn/publisher"
 	"github.co.za/PandaxZA/hayvn/utils"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -76,9 +77,11 @@ func main() {
 
 	// Services
 	consumer := consumer.NewBatcher(m, t, logger, config.RATE_LIMIT_SECONDS)
+	publisher := publisher.NewRestPublisher(config.RESPONSE_URL, config.RESPONSE_PORT, logger)
 
 	// Workers
 	go messageWorker(c, t, consumer, p)
+	go publishWorker(p, publisher)
 
 	// Routes:
 	r.Method(http.MethodGet, "/", nethttp.NewHandler(HealthCheck()))
@@ -95,6 +98,7 @@ func main() {
 }
 
 func HealthCheck() usecase.IOInteractor {
+	// A basic health check to ping the server and confirm requests are received.
 	type healthCheckOutput struct {
 		Status string `json:"status"`
 		Data   string `json:"data"`
@@ -114,6 +118,8 @@ func HealthCheck() usecase.IOInteractor {
 }
 
 func messageWorker(c chan models.MessageBody, t chan bool, consumer *consumer.Batcher, publishChan chan models.AggregatedmessagesBody) {
+
+	// This worker will receive a ping from the timer channel and instruct the consumer to flush the data stored in memory, and send the in-memory data down the publish channel
 	for {
 		select {
 		case <-t:
@@ -127,4 +133,16 @@ func messageWorker(c chan models.MessageBody, t chan bool, consumer *consumer.Ba
 
 		}
 	}
+}
+
+func publishWorker(publishChan chan models.AggregatedmessagesBody, publisher publisher.Publisher) {
+	// The publish worker will receive the in memory data, and send it to the publisher
+	for {
+		select {
+		case message := <-publishChan:
+			fmt.Println("Data in publishWorker is: ", message)
+			publisher.Send(message)
+		}
+	}
+
 }
