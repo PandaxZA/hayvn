@@ -15,6 +15,8 @@ The interfaces were chosen to allow for _hot-swappable_ modules. For example, th
 I chose to use the go-chi router as a base plate for the API layer, and included the swagger library to create "API docs". This allows for easy testing and integrations.
 
 
+The repo for this assignment can be found at https://github.com/PandaxZA/hayvn
+
 ## Variables:
 	HOST_NAME           The host on which to serve the API                          default: http://localhost
     HOST_PORT           The port on which to serve the API                          default: 8081
@@ -89,3 +91,4 @@ Resulting Message:
     ]
 }
 ```
+
