@@ -47,9 +47,19 @@ func (p *RestPublisher) Send(message models.AggregatedmessagesBody) {
 	}
 	url := fmt.Sprintf("%s:%d/aggregated-messages", p.baseURL, p.basePort)
 
-	p.logger.Info().Msgf("Sending to: %s with body: %s", url, string(json_data))
+	prettyJson, _ := PrettyString(string(json_data))
+
+	p.logger.Info().Msgf("Sending to: %s with body: %s", url, prettyJson)
 	_, err = client.Post(url, "application/json", bytes.NewBuffer(json_data))
 	if err != nil {
 		p.logger.Error().Msgf("%v", err)
 	}
+}
+
+func PrettyString(str string) (string, error) {
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, []byte(str), "", "    "); err != nil {
+		return "", err
+	}
+	return prettyJSON.String(), nil
 }
