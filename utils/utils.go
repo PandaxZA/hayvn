@@ -17,8 +17,8 @@ type Environment struct {
 	RESPONSE_PORT      int    `env:"RESPONSE_PORT,default=8082"`
 	RATE_LIMIT_SECONDS int    `env:"RATE_LIMIT_SECONDS,default=10"`
 
-	IS_DEBUG bool `env:"IS_DEBUG,default=false"`
-	IS_LOCAL bool `env:"IS_LOCAL,default=false"`
+	IS_DEBUG bool `env:"IS_DEBUG,default=true"`
+	IS_LOCAL bool `env:"IS_LOCAL,default=true"`
 }
 
 var CurrentEnvironment Environment

@@ -22,7 +22,7 @@ The repo for this assignment can be found at https://github.com/PandaxZA/hayvn
     HOST_PORT           The port on which to serve the API                          default: 8081
 	RESPONSE_URL        The Base URL on which to post the aggregated messages       default: http://locahost
 	RESPONSE_PORT       The Port on which to post the aggregated messages           default: 8082
-	RATE_LIMIT_SECONDS  The time in seconds to batch the messages received      default: 10
+	RATE_LIMIT_SECONDS  The time in seconds to batch the messages received          default: 10
 
 ## Steps for running:
 
